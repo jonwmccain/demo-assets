@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Veolia Utility Payment & Payment Plan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #00549a;
+            --accent-color: #e30613;
+            --background-color: #f5f7fa;
+            --border-color: #d0d7e2;
+            --text-main: #1f2933;
+            --text-muted: #6b7280;
+        }
+        body {
+            margin:0; padding:24px 16px;
+            background: var(--background-color);
+            font-family: Inter, system-ui, sans-serif;
+            color: var(--text-main);
+        }
+        .page-wrapper { max-width:960px; margin:0 auto; }
+        header {
+            display:flex; justify-content:space-between;
+            margin-bottom:24px; padding-bottom:16px;
+            border-bottom:2px solid var(--border-color);
+        }
+        .logo-wrapper img { max-height:50px; }
+        .section {
+            background:#fff; border-radius:8px;
+            padding:16px 20px; margin-bottom:16px;
+            border:1px solid var(--border-color);
+        }
+        .section-header {
+            display:flex; justify-content:space-between; align-items:center;
+            margin-bottom:12px;
+        }
+        .tag {
+            padding:2px 8px; border-radius:999px;
+            border:1px solid var(--accent-color);
+            color:var(--accent-color);
+            font-size:0.7rem; text-transform:uppercase;
+        }
+        table { width:100%; border-collapse:collapse; font-size:0.9rem; }
+        th, td { padding:8px 10px; border-bottom:1px solid #e5e7eb; }
+        thead { background:#f3f4f6; }
+        .amount { text-align:right; }
+        .status-paid { color:#059669; font-weight:600; }
+        .status-upcoming { color:#d97706; font-weight:600; }
+        .status-past-due { color:#b91c1c; font-weight:600; }
+        .no-plan-message {
+            background:#fefce8; border:1px solid #facc15;
+            padding:12px 14px; border-radius:8px;
+            color:#854d0e; font-size:0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+<div class="page-wrapper">
+
+    <!-- Header -->
+    <header>
+        <div class="logo-wrapper">
+            <img src="{{context.data.paymentDetails.utility.logoUrl}}" />
+        </div>
+        <div class="title-block" style="text-align:right;">
+            <h1>{{context.data.paymentDetails.utility.pageTitle}}</h1>
+            <p>{{context.data.paymentDetails.utility.accountLabel}}</p>
+        </div>
+    </header>
+
+    <!-- Payment -->
+    <section class="section">
+        <div class="section-header">
+            <h2>Most Recent Payment</h2>
+            <span class="tag">{{context.data.paymentDetails.payment.statusLabel}}</span>
+        </div>
+
+        <div style="display:flex; gap:24px; flex-wrap:wrap;">
+            <div>
+                <div class="key-label">Payment Date</div>
+                <strong>{{context.data.paymentDetails.payment.dateDisplay}}</strong>
+            </div>
+            <div>
+                <div class="key-label">Payment Amount</div>
+                <strong>{{context.data.paymentDetails.payment.amountDisplay}}</strong>
+            </div>
+            <div>
+                <div class="key-label">Payment Method</div>
+                <strong>{{context.data.paymentDetails.payment.methodDisplay}}</strong>
+            </div>
+            <div>
+                <div class="key-label">Confirmation #</div>
+                <strong>{{context.data.paymentDetails.payment.confirmationNumber}}</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- Payment Plan Section -->
+    <section id="paymentPlanSection" class="section">
+        <div class="section-header">
+            <h2>Payment Plan</h2>
+            <span class="tag">{{context.data.paymentDetails.paymentPlan.tagLabel}}</span>
+        </div>
+
+        <div style="display:flex; gap:24px; flex-wrap:wrap;">
+            <div>
+                <div class="key-label">Plan Start Date</div>
+                <strong>{{context.data.paymentDetails.paymentPlan.planStartDateDisplay}}</strong>
+            </div>
+            <div>
+                <div class="key-label">Number of Payments</div>
+                <strong>{{context.data.paymentDetails.paymentPlan.numberOfPaymentsDisplay}}</strong>
+            </div>
+            <div>
+                <div class="key-label">Installment Amount</div>
+                <strong>{{context.data.paymentDetails.paymentPlan.installmentAmountDisplay}}</strong>
+            </div>
+            <div>
+                <div class="key-label">Interest / Fees</div>
+                <strong>{{context.data.paymentDetails.paymentPlan.interestFeesDisplay}}</strong>
+            </div>
+        </div>
+
+        <div style="margin-top:12px; background:#f0f7ff; padding:12px; border-radius:8px;">
+            <div>
+                <div class="key-label">Total Balance Owed</div>
+                <strong>{{context.data.paymentDetails.paymentPlan.totalBalanceDisplay}}</strong>
+            </div>
+            <div style="margin-top:8px;">
+                <div class="key-label">Remaining Balance After Last Payment</div>
+                <strong>{{context.data.paymentDetails.paymentPlan.remainingBalanceDisplay}}</strong>
+            </div>
+        </div>
+
+        <!-- JS‑Rendered Table -->
+        <table style="margin-top:12px;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Payment Date</th>
+                    <th>Description</th>
+                    <th class="amount">Payment Amount</th>
+                    <th class="amount">Balance After</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="planScheduleBody"></tbody>
+            <tfoot id="planScheduleFooter"></tfoot>
+        </table>
+    </section>
+
+    <div id="noPlanMessage" class="no-plan-message" style="display:none;">
+        No active payment plan was found for this account.
+    </div>
+
+</div>
+
+<script>
+    // Inject plan object from server-side Mustache
+    const paymentPlan =
+      {{ JSON.stringify(context.data.paymentDetails.paymentPlan || null) }};
+
+    const section = document.getElementById("paymentPlanSection");
+    const msg = document.getElementById("noPlanMessage");
+    const tbody = document.getElementById("planScheduleBody");
+    const tfoot = document.getElementById("planScheduleFooter");
+
+    if (!paymentPlan || !paymentPlan.exists || !Array.isArray(paymentPlan.schedule) || paymentPlan.schedule.length === 0) {
+        section.style.display = "none";
+        msg.style.display = "block";
+    } else {
+        paymentPlan.schedule.forEach(item => {
+            const tr = document.createElement("tr");
+
+            tr.innerHTML = `
+                <td>${item.sequence}</td>
+                <td>${item.dateDisplay}</td>
+                <td>${item.description}</td>
+                <td class="amount">${item.amountDisplay}</td>
+                <td class="amount">${item.balanceAfterDisplay}</td>
+                <td class="status-upcoming">Upcoming</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const totalRow = document.createElement("tr");
+        totalRow.innerHTML = `
+            <td colspan="3">Total Scheduled</td>
+            <td class="amount">${paymentPlan.totalScheduledAmountDisplay}</td>
+            <td class="amount">${paymentPlan.finalBalanceDisplay}</td>
+            <td></td>
+        `;
+        tfoot.appendChild(totalRow);
+    }
+</script>
+
+</body>
+</html>
