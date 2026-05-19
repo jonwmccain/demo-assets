@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" role="img" aria-label="Perplexity Sonar extension logo">
+  <rect width="768" height="768" fill="#35B4CC" />
+  <g fill="none" stroke="#000" stroke-linecap="square" stroke-linejoin="miter" stroke-width="28">
+    <path d="M144 256H624" />
+    <path d="M384 96V656" />
+    <path d="M208 96V256" />
+    <path d="M560 96V256" />
+    <path d="M144 256V496H208" />
+    <path d="M624 256V496H560" />
+    <path d="M384 256L208 96" />
+    <path d="M384 256L560 96" />
+    <path d="M384 256L208 432" />
+    <path d="M384 256L560 432" />
+    <path d="M208 432V624" />
+    <path d="M560 432V624" />
+    <path d="M208 624L384 464" />
+    <path d="M560 624L384 464" />
+  </g>
+</svg>
